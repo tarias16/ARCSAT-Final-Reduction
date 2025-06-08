@@ -64,7 +64,7 @@ def run_reduction(data_dir, reduced_dir, reduce_images = True):
         bias_files_rn.append(biases[i])
 
     
-
+    # Creates the calibration images and saves their paths
 
     median_bias = create_median_bias(biases, 'median_bias.fits' )
 
@@ -83,14 +83,19 @@ def run_reduction(data_dir, reduced_dir, reduce_images = True):
 
     plot_flat(flat_path)
 
-    
+
+    # Creates lists for the reduced science images and their paths
     reduced_science_list = []
     science_paths = []
+    # Creates a path to the specified reduced_dir where reduced images will be saved
     path = os.path.abspath(reduced_dir)
 
     os.chdir(reduced_dir)
+
+    # Checks to see if the function is called to Reduce Images
     if reduce_images is True:
-        
+
+        # Reduced every image provided in science_list
         for ii in range(0,len(science_list)):
             data = reduce_science_frame(science_list[ii], 
                                 bias_path, 
@@ -101,10 +106,12 @@ def run_reduction(data_dir, reduced_dir, reduce_images = True):
             
             science_paths.append(os.path.join(path, f'reduced_science{ii+1}.fits'))
     else:
+        # Gathers reduced science data and paths if reduced images are already provided
         for ii in range(0,len(science_list)):
             reduced_science_list.append(fits.getdata(f'reduced_science{ii+1}.fits'))
             science_paths.append(os.path.abspath(f'reduced_science{ii+1}.fits'))
 
+    # Changes back to original directory
     os.chdir(cwd)
 
     # Calls the gain calculation function
@@ -112,14 +119,13 @@ def run_reduction(data_dir, reduced_dir, reduce_images = True):
     # Calls the readout noise calculation function
     readout_noise = calculate_readout_noise(bias_files_rn, gain)
 
-    print(gain)
-    print(readout_noise)
-
+    # Defines lists for light curve generation
     times = []
     fluxes = []
     error = []
     
-    # Getting list of radii and positions for photometry of first science image
+    # Start of the photometry loop for every provided science image
+    # Gathers the position of target star in each image
     for i in range(0, len(reduced_science_list)):
         radii = [15]
     
@@ -140,30 +146,35 @@ def run_reduction(data_dir, reduced_dir, reduce_images = True):
         
     
     
-    # Performs aperture photometry on reduced_science1.fits
+        # Performs aperture photometry on all images
         ap_phot = do_aperture_photometry(science_paths[i], positions, radii, 30, 5, gain)
         
-        
+        # Appends the time, flux, and associated uncertainty of each observation
         times.append(fits.getheader(science_list[i])['DATE-OBS']) 
         fluxes.append(ap_phot['aperture_sum_0'][0]) 
         error.append(ap_phot['aperture_sum_err_0'][0]) 
     
-    
+    # Gathers the percent uncertainty in flux based on the ap_phot error
     percent_unc = []
     for i in range(0, len(fluxes)):
         percent_unc.append(error[i]/fluxes[i])
 
 
-    # norm_flux = data/(np.median(data))
+    # Normalizes the flux with respect to its maximum value
     norm_flux = [float(i)/max(fluxes) for i in fluxes]
 
+    # Initializes a table of the times, fluxes, and uncertainty for each observation
     table = Table([times, norm_flux, percent_unc], names = ('time', 'flux', 'uncertainty'))
 
+    # Turns the table into a TimeSeries object
     ts = TimeSeries(table)
+    # Writes the table as a CSV file
     ts.write('AE Ursa Majoris Time Series.csv', format = 'csv', overwrite = True)
 
+    # Plots the light curve based on the Timeseries table
     plot_timeseries('AE Ursa Majoris Time Series.csv')
 
+    # Calculates the period of the plotted light curve
     find_period('AE Ursa Majoris Time Series.csv')
     
     return 
