@@ -11,17 +11,6 @@ from astropy.visualization import ImageNormalize, LinearStretch, ZScaleInterval
 from astropy.stats import sigma_clip
 
 def create_median_bias(bias_list, median_bias_filename):
-    """This function must:
-
-    - Accept a list of bias file paths as bias_list.
-    - Read each bias file and create a list of 2D numpy arrays.
-    - Use a sigma clipping algorithm to combine all the bias frames using
-      the median and removing outliers outside 3-sigma for each pixel.
-    - Save the resulting median bias frame to a FITS file with the name
-      median_bias_filename.
-    - Return the median bias frame as a 2D numpy array.
-
-    """
 
     # Reads the fits filepaths provided by bias_list 
     bias_images = []
