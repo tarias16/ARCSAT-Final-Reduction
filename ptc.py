@@ -7,14 +7,6 @@ import numpy
 from astropy.io import fits
 
 def calculate_gain(files):
-    """This function must:
-
-    - Accept a list of files that you need to calculate the gain
-      (two files should be enough, but what kind?).
-    - Read the files and calculate the gain in e-/ADU.
-    - Return the gain in e-/ADU.
-
-    """
 
     # Defines list of flats for calculation
     flat_gain_list = []
@@ -40,16 +32,7 @@ def calculate_gain(files):
 
 
 def calculate_readout_noise(files, gain):
-    """This function must:
-
-    - Accept a list of files that you need to calculate the readout noise
-      (two files should be enough, but what kind?).
-    - Accept the gain in e-/ADU as gain. This should be the one you calculated
-      in calculate_gain.
-    - Read the files and calculate the readout noise in e-.
-    - Return the readout noise in e-.
-
-    """
+ 
     # Defines list for bias fiels
     bias_rn_list = []
 
