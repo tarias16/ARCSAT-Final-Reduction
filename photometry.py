@@ -24,33 +24,13 @@ def do_aperture_photometry(
     sky_annulus_width,
     gain
 ):
-    """This function must:
 
-    - Accept a fully reduced science image as a file and read it.
-    - Accept a list of positions on the image as a list of tuples (x, y).
-    - Accept a list of aperture radii as a list of floats.
-    - Accept a the radius at which to measure the sky background as sky_radius_in.
-    - Accept a the width of the annulus as sky_annulus_width.
-    - For each position and radius, calculate the flux in the aperture, subtracting
-      the sky background. You can do this any way that you like but probably you'll
-      want to use SkyCircularAnnulus from photutils.
-    - The function should return the results from the aperture photometry. Usually
-      this will be an astropy table from calling photutils aperture_photometry, but
-      it can be something different if you use a different library.
-
-    Note that the automated tests just check that you are returning from this
-    function, but they do not check the contents of the returned data.
-
-    """
     # Gets reduced science image from image parameter
     science_image = fits.getdata(image)
 
 
     # Defines a list of Circular apertures for every radius provided
     ap = [CircularAperture(positions, r) for r in radii]
-
-  
-
     
 
     # Defines an annular region for local background calculation
