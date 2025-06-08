@@ -75,11 +75,10 @@ def do_aperture_photometry(
             area = (ap[i].area_overlap(science_image))
             sky_flux[i][j] = (bckgrd[j] * area[j])
 
-    # background_array = Background2D(science_image, 1)
-
+    # Calculates the error from CCD gain, and local background in each image
     error = calc_total_error(science_image, bckgrd[0], gain)
 
-    # Performs aperture photometry for every star and radius
+    # Performs aperture photometry for every star and radius, propogates the error through the photometry analysis
     ap_phot = aperture_photometry(science_image, ap, error = error)
 
 
@@ -87,52 +86,8 @@ def do_aperture_photometry(
     for i in range(0, np.size(radii)):
         ap_phot[f'aperture_sum_{i}'] = ap_phot[f'aperture_sum_{i}'] - sky_flux[i]
 
-    # Adds the local background of each star to the ap_phot table
+    # Saves the local background of each star to the ap_phot table
     ap_phot['background'] = bckgrd
 
     return ap_phot
 
-
-
-def plot_radial_profile(aperture_photometry_data, image, output_filename="radial_profile.png"):
-    """This function must:
-
-    - Accept a table of aperture photometry data as aperture_photometry_data. This
-      is probably a photutils table, the result of do_aperture_photometry, but you
-      can pass anything you like. The table/input data can contain a single target
-      or multiple targets, but it must include multiple apertures.
-    - Plot the radial profile of a target in the image using matplotlib. If you
-      have multiple targets, label them correctly.
-    - Plot a vertical line at the radius of the sky aperture used for the photometry.
-    - Save the plot to the file specified in output_filename.
-
-    """
-    # Calls the reduced science image used in do_aperture_photometry
-    reduced_science = fits.getdata(image)
-
-    # Establishes a list of radii to plot radial profiles
-    length = len(aperture_photometry_data[1])
-    radii = list(range(1,length-4))
-
-    # Defines a radial profile for a signle star in reduced_science while subtracting that star's local background
-    rp = RadialProfile((reduced_science - aperture_photometry_data['background'][1]), (aperture_photometry_data['xcenter'][1], aperture_photometry_data['ycenter'][1]), radii)
-
-    # Records the radius where the most flux is captured
-    max_flux = 0
-    
-    for i in range(0,np.size(radii)):
-        if aperture_photometry_data[f'aperture_sum_{i}'][1] > max_flux:
-            max_flux = aperture_photometry_data[f'aperture_sum_{i}'][1]
-            max_radii = i
-
-    # Plots the radial profile of the star and marks the radius at which the most signal without background is found
-    plt.clf()        
-    plt.plot(rp.radius, rp.profile, label = f'Position ({aperture_photometry_data['xcenter'][1]:.2f}, {aperture_photometry_data['ycenter'][1]:.2f})')
-    
-    plt.axvline(x = max_radii + 1, color = 'r', label = f'Aperture = {max_radii + 1} pixels', linestyle = '--')
-    
-    plt.legend(loc=0, shadow =True)
-
-    plt.savefig(output_filename)
-
-    pass
